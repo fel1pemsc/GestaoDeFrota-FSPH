@@ -63,12 +63,17 @@ model Fornecedor {
 
 model Veiculo {
   id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  propriedade      String   @default("PROPRIO") @db.VarChar(10)
   placa            String  @unique @db.VarChar(8)
   modelo           String  @db.VarChar(100)
+  ano              Int?
   tipoFrota        String  @map("tipo_frota") @db.VarChar(20)
   fornecedorId     String? @map("fornecedor_id") @db.Uuid
+  criadoEm         DateTime @default(now()) @map("criado_em")
+  atualizadoEm     DateTime @default(now()) @updatedAt @map("atualizado_em")
   capacidadeMaxima Int     @default(4) @map("capacidade_maxima")
   odometroAtual    Decimal @default(0) @map("odometro_atual") @db.Decimal(10, 2)
+  combustivel      String?  @db.VarChar(30)
   status           String  @default("DISPONIVEL") @db.VarChar(30)
   ativo            Boolean @default(true)
 
@@ -82,6 +87,7 @@ model Veiculo {
 
   @@index([fornecedorId])
   @@index([tipoFrota, status])
+  @@index([ativo])
   @@map("veiculos")
 }
 
