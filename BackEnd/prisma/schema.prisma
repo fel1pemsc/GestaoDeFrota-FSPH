@@ -162,23 +162,32 @@ model Abastecimento {
 }
 
 model SolicitacaoViagem {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  solicitanteId      String    @map("solicitante_id") @db.Uuid
-  setorOrigem        String?   @map("setor_origem") @db.VarChar(100)
-  dataHoraPretendida DateTime? @map("data_hora_pretendida")
-  origem             String?
-  destino            String?
-  urgencia           String    @default("NORMAL") @db.VarChar(20)
-  status             String    @default("PENDENTE") @db.VarChar(30)
-  veiculoAlocadoId   String?   @map("veiculo_alocado_id") @db.Uuid
-  motoristaAlocadoId String?   @map("motorista_alocado_id") @db.Uuid
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  protocolo               String    @unique @db.VarChar(20)
+  solicitanteId           String    @map("solicitante_id") @db.Uuid
+  setorOrigem             String?   @map("setor_origem") @db.VarChar(100)
+  dataHoraPretendida      DateTime? @map("data_hora_pretendida")
+  dataHoraRetornoPrevista DateTime? @map("data_hora_retorno_prevista")
+  origem                  String?
+  destino                 String?
+  quantidadePassageiros   Int       @default(1) @map("quantidade_passageiros")
+  tipoTransporte          String    @default("PASSAGEIROS") @map("tipo_transporte") @db.VarChar(30)
+  urgencia                String    @default("NORMAL") @db.VarChar(20)
+  status                  String    @default("PENDENTE") @db.VarChar(30)
+  justificativa           String?
+  observacoes             String?
+  motivoRecusa            String?   @map("motivo_recusa")
+  veiculoAlocadoId        String?   @map("veiculo_alocado_id") @db.Uuid
+  motoristaAlocadoId      String?   @map("motorista_alocado_id") @db.Uuid
+  criadoEm                DateTime  @default(now()) @map("criado_em")
 
   solicitante       Usuario          @relation(fields: [solicitanteId], references: [id])
   veiculoAlocado    Veiculo?         @relation(fields: [veiculoAlocadoId], references: [id])
   motoristaAlocado  Motorista?       @relation(fields: [motoristaAlocadoId], references: [id])
   execucao          ExecucaoViagem?
 
-  @@index([solicitanteId])
+  @@index([solicitanteId, criadoEm])
+  @@index([criadoEm])
   @@index([status, dataHoraPretendida])
   @@index([veiculoAlocadoId])
   @@index([motoristaAlocadoId])
@@ -271,3 +280,12 @@ model AuditoriaSistema {
   @@map("auditoria_sistema")
 }
 
+// Numeração legível por prefixo e ano (ex.: SV-2026-0001), incrementada em transação.
+model ContadorProtocolo {
+  prefixo     String @db.VarChar(10)
+  ano         Int
+  ultimoValor Int    @default(0) @map("ultimo_valor")
+
+  @@id([prefixo, ano])
+  @@map("contadores_protocolo")
+}
